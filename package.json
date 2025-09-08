@@ -1,0 +1,27 @@
+{
+  "name": "algolia-sidebyside-demo",
+  "version": "1.0.0",
+  "description": "Professional Algolia side-by-side search demo with secure environment variable management",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build step required'",
+    "start": "netlify dev"
+  },
+  "keywords": [
+    "algolia",
+    "search",
+    "demo",
+    "neuralsearch",
+    "comparison",
+    "netlify"
+  ],
+  "author": "Tyler Greff",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^15.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

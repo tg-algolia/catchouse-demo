@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Algolia Search Demo - Mix Discovery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css/themes/algolia-min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- UPDATE FAVICON + FONT -->
+    <link rel="icon" href="https://avatars.githubusercontent.com/u/2034458?s=280&v=4" type="image/svg+xml">
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sora', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #363A5A;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        a {
+            color: #5468FF;
+            text-decoration: none;
+        }
+
+        .ais-Hits-item{
+            border: 0px;
+            box-shadow: 0 0 0 0;
+        }
+
+        .ais-Hits-list{
+            border: 1px;
+            border-color: #000;
+            border: 1px dashed #cfc4ab68;
+            border-radius: 8px;
+        }
+
+        header {
+            background: #003dff;
+            padding: 24px 40px;
+            border-bottom: none;
+            text-align: center;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(84, 104, 255, 0.15);
+            position: relative;
+        }
+
+        header img {
+            height: 48px;
+        }
+
+        h1 {
+            font-size: 2em;
+            font-weight: 400;
+            margin: 16px 0 0 0;
+            font-family: 'Sora', sans-serif;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        #searchbox-input {
+            width: 85%;
+            max-width: 600px;
+            padding: 10px 10px;
+            font-size: 1.1rem;
+            font-family: 'Sora', sans-serif;
+            margin: 1.5rem auto;
+            display: block;
+            border: 2px solid #E8E9F3;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(84, 104, 255, 0.08);
+            transition: all 0.3s ease;
+            background: white;
+        }
+        #searchbox-input:focus {
+            outline: none;
+            border-color: #003dff;
+            box-shadow: 0 8px 24px rgba(84, 104, 255, 0.15);
+            transform: translateY(-1px);
+        }
+        #searchbox-input::placeholder {
+            color: #999;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 0px 50px;
+            gap: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            width: 50%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 10px 50px;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .panel h2 {
+            font-size: 1.4em;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: #363A5A;
+            font-family: 'Sora', sans-serif;
+            text-align: center;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E8E9F3;
+        }
+        .panel h2:hover {
+            color: #457aff;
+            transition: color 0.3s ease;
+        }
+
+        .facet,
+        .hits {
+            margin-bottom: 30px;
+        }
+
+        .ais-Hits-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid rgba(84, 104, 255, 0.15);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.8);
+        }
+        
+        .ais-Hits-item {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        .hit-card {
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            height: 27rem;
+            width: 12rem;
+            min-width: 0;
+            display: flex;
+            padding: 10px;
+            margin: 0;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.8);
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+        .hit-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .hit-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .hit-content {
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: flex-start;
+            min-height: 0;
+        }
+
+        .hit-content-top {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        .hit-content-bottom {
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        .product-name {
+            font-size: .80rem;
+            font-weight: 600;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            color: #363A5A;
+            font-family: 'Sora', sans-serif;
+            min-height: 60px;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+
+        .product-meta {
+            font-size: 0.9em;
+            color: #6B7280;
+            line-height: 1.5;
+            font-family: 'Sora', sans-serif;
+            font-weight: 400;
+        }
+
+        .product-tags {
+            font-size: 0.75em;
+            color: #9CA3AF;
+            margin-top: 8px;
+            font-family: 'Sora', sans-serif;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            background: #00b928;
+            color: white;
+            padding: 4px 8px 0px 8px;
+            border-radius: 12px;
+            font-size: .60em;
+            font-weight: 500;
+            margin-bottom: 4px;
+            font-family: 'Sora', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            align-self: flex-start;
+            height: 1rem;
+            line-height: 1.2;
+            min-height: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .price-display {
+            font-size: 1em;
+            font-weight: 600;
+            color: #00526c;
+            margin: 0;
+            font-family: 'Sora', sans-serif;
+            line-height: 1.2;
+            min-height: 20px;
+        }
+
+        .product-description {
+            font-size: 0.85em;
+            color: #6B7280;
+            line-height: 1.4;
+            margin-top: 12px;
+            font-family: 'Sora', sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <!-- <svg width="120" height="40" viewBox="0 0 120 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="30" height="30" rx="6" fill="white"/>
+            <text x="45" y="25" font-family="Sora, sans-serif" font-size="24" font-weight="600" fill="white">Algolia</text>
+        </svg> -->
+        <img src="Algolia-logo-white.svg">
+        <h1>Side-by-Side Demo</h1>
+        <p style="margin: 10px; opacity: 0.9; font-weight: 300;">Compare search results across different infrastructure, indices, or configurations.</p>
+    </header>
+
+    <input type="text" id="searchbox-input" placeholder="Search for content..." />
+
+    <div class="container">
+        <div class="panel">
+            <a href="https://dashboard.algolia.com/apps/UUCTQPKC2Z/explorer/browse/all-products"><h2>Production Search</h2></a>
+            <div id="facets-left" class="facet"></div>
+            <div id="hits-left" class="hits"></div>
+        </div>
+        <div class="panel">
+            <a href="https://dashboard.algolia.com/apps/T3J6BKODKM/explorer/browse/demo_rivly_ns"><h2>NeuralSearch</h2></a>
+            <div id="facets-right" class="facet"></div>
+            <div id="hits-right" class="hits"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+    <script>
+        // Configuration for App 1
+        const search1 = instantsearch({
+            indexName: 'all-products',
+            searchClient: algoliasearch('UUCTQPKC2Z', '6981524f62d3f21830c3cd11643e1cd2'),
+        });
+
+        // Configuration for App 2
+        const search2 = instantsearch({
+            indexName: 'demo_rivly_ns',
+            searchClient: algoliasearch('T3J6BKODKM', '85be8167f9237efc6997e81f8af59f73'),
+        });
+
+        function hitTemplate(hit) {
+            const fallbackImage = "https://media.licdn.com/dms/image/v2/C4D0BAQFsBsEsjZDr_Q/company-logo_200_200/company-logo_200_200/0/1630489159265?e=2147483647&v=beta&t=ZCy-_DEKcwpyNvNLDjLcfqUQYS3wWG-KYJwi_BvsnOg";
+            
+            // Construct Cloudinary image URL
+            let imageUrl = fallbackImage;
+            if (hit.images && hit.images[0] && hit.images[0].source) {
+                imageUrl = `https://res.cloudinary.com/rivly/f_auto,q_auto/${hit.images[0].source}`;
+            }
+            
+            // Format price from priceBest.standard
+            const price = hit.priceBest?.standard ? `$${hit.priceBest.standard}` : '';
+            
+            // Limit description to 80 characters
+            const limitedDescription = hit.description ? 
+                (hit.description.length > 80 ? hit.description.substring(0, 80) + '...' : hit.description) : '';
+
+            return `
+                <div class="hit-card">
+                <img 
+                    src="${imageUrl}" 
+                    alt="${hit.title || 'Product image'}" 
+                    onerror="this.onerror=null;this.src='${fallbackImage}';"
+                />
+                <div class="hit-content">
+                    <div class="hit-content-top">
+                        ${hit.brand ? `<div class="brand-badge">${hit.brand}</div>` : '<div class="brand-badge" style="opacity: 0; pointer-events: none;">PLACEHOLDER</div>'}
+                        <div class="product-name">${hit.title || 'Unnamed Product'}</div>
+                    </div>
+                    <div class="hit-content-bottom">
+                        ${price ? `<div class="price-display">${price}</div>` : '<div class="price-display" style="opacity: 0;">$0.00</div>'}
+                    </div>
+                </div>
+                </div>
+            `;
+        }
+
+
+        search1.addWidgets([
+            instantsearch.widgets.hits({
+                container: '#hits-left',
+                templates: { item: hitTemplate }
+            })
+        ]);
+
+        search2.addWidgets([
+            instantsearch.widgets.hits({
+                container: '#hits-right',
+                templates: { item: hitTemplate }
+            })
+        ]);
+
+        search1.start();
+        search2.start();
+
+        const input = document.getElementById('searchbox-input');
+        input.addEventListener('input', (e) => {
+            const query = e.target.value;
+            search1.helper.setQuery(query).search();
+            search2.helper.setQuery(query).search();
+        });
+    </script>
+</body>
+
+</html>

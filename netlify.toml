@@ -1,8 +1,21 @@
 [build]
   publish = "."
+  functions = "netlify/functions"
   
 [build.environment]
   NODE_VERSION = "18"
+
+# Environment variables for production deployment
+# Set these in Netlify dashboard under Site Settings > Environment Variables
+[context.production.environment]
+  # INDEX1_NAME = "your-production-index-1"
+  # INDEX1_APP_ID = "YOUR_PRODUCTION_APP_ID_1"
+  # INDEX1_API_KEY = "your-production-search-key-1"
+  # INDEX1_TITLE = "Production Search"
+  # INDEX2_NAME = "your-production-index-2"
+  # INDEX2_APP_ID = "YOUR_PRODUCTION_APP_ID_2"
+  # INDEX2_API_KEY = "your-production-search-key-2"
+  # INDEX2_TITLE = "NeuralSearch"
 
 [[headers]]
   for = "/*"
@@ -11,6 +24,13 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
 
 [[headers]]
   for = "*.js"

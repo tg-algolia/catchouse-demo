@@ -5,9 +5,9 @@
 ALGOLIA SIDE-BY-SIDE SEARCH DEMO
 ========================================
 
-CONFIGURATION:
-All sensitive configuration is stored in config.js
-Copy config.example.js to config.js and fill in your values
+ENVIRONMENT VARIABLES:
+Sensitive environment variables (API keys, App IDs) are loaded via Netlify Functions
+Content and styling variables are configured directly in this file
 -->
 
 <head>
@@ -17,7 +17,7 @@ Copy config.example.js to config.js and fill in your values
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
-    <!-- DYNAMIC FAVICON + FONT (Updated via JavaScript configuration) -->
+    <!-- DYNAMIC FAVICON + FONT -->
     <link id="dynamic-favicon" rel="icon" href="https://avatars.githubusercontent.com/u/2034458?s=280&v=4" type="image/svg+xml">
     <link id="dynamic-font" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -284,6 +284,13 @@ Copy config.example.js to config.js and fill in your values
             font-family: 'Sora', sans-serif;
             text-align: center;
         }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-family: 'Sora', sans-serif;
+        }
     </style>
 </head>
 
@@ -297,11 +304,15 @@ Copy config.example.js to config.js and fill in your values
     <input type="text" id="searchbox-input" placeholder="Search for content..." />
 
     <div id="config-error" class="config-error" style="display: none;">
-        <h3>Configuration Missing</h3>
-        <p>Please copy <code>config.example.js</code> to <code>config.js</code> and fill in your Algolia credentials.</p>
+        <h3>Configuration Error</h3>
+        <p>Failed to load environment configuration. Please check your Netlify function setup.</p>
     </div>
 
-    <div class="container">
+    <div id="loading" class="loading">
+        <p>Loading configuration...</p>
+    </div>
+
+    <div class="container" style="display: none;" id="main-content">
         <div class="panel">
             <a href="#" id="index1-link"><h2 id="index1-title">Loading...</h2></a>
             <div id="facets-left" class="facet"></div>
@@ -314,7 +325,7 @@ Copy config.example.js to config.js and fill in your values
         </div>
     </div>
 
-    <!-- Load configuration -->
+    <!-- Load configuration (fallback for local development) -->
     <script src="config.js"></script>
     
     <!-- Load Algolia libraries -->
@@ -322,116 +333,175 @@ Copy config.example.js to config.js and fill in your values
     <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
     
     <script>
-        // Check if configuration is loaded
-        if (!window.ALGOLIA_CONFIG) {
-            document.getElementById('config-error').style.display = 'block';
-            throw new Error('Configuration not found. Please create config.js file.');
+        // ========================================
+        // CONTENT & STYLING CONFIGURATION
+        // ========================================
+        
+        const CONTENT_CONFIG = {
+            // Visual Configuration
+            FALLBACK_IMAGE: 'https://media.licdn.com/dms/image/v2/C4D0BAQFsBsEsjZDr_Q/company-logo_200_200/company-logo_200_200/0/1630489159265?e=2147483647&v=beta&t=ZCy-_DEKcwpyNvNLDjLcfqUQYS3wWG-KYJwi_BvsnOg',
+            FAVICON_URL: 'https://avatars.githubusercontent.com/u/2034458?s=280&v=4',
+            FONT_FAMILY: 'Sora',
+
+            // Hit Card Attributes Configuration
+            TITLE_ATTRIBUTE: 'title',
+            DESCRIPTION_ATTRIBUTE: 'description',
+            PRICE_ATTRIBUTE: 'priceBest.standard',
+            EXTRA_ATTRIBUTE: 'category',
+            BRAND_ATTRIBUTE: 'brand'
+        };
+
+        // ========================================
+        // CONFIGURATION LOADING
+        // ========================================
+        
+        async function loadConfig() {
+            try {
+                // Try to load from Netlify function first (production)
+                const response = await fetch('/.netlify/functions/config');
+                if (response.ok) {
+                    return await response.json();
+                }
+                throw new Error('Netlify function not available');
+            } catch (error) {
+                // Fallback to local config (development)
+                if (window.ENV_CONFIG) {
+                    return window.ENV_CONFIG;
+                }
+                throw error;
+            }
         }
 
-        const config = window.ALGOLIA_CONFIG;
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        async function initializeApp() {
+            try {
+                // Load environment configuration
+                const envConfig = await loadConfig();
+                
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('main-content').style.display = 'flex';
 
-        // ========================================
-        // DYNAMIC SETUP
-        // ========================================
-        
-        // Update favicon dynamically
-        document.getElementById('dynamic-favicon').href = config.FAVICON_URL;
-        
-        // Update font family dynamically
-        document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${config.FONT_FAMILY.replace(' ', '+')}:wght@300;400;500;600;700&display=swap`;
-        
-        // Update CSS font family
-        document.body.style.fontFamily = `'${config.FONT_FAMILY}', 'Helvetica Neue', sans-serif`;
-        
-        // Update panel titles and links dynamically
-        document.getElementById('index1-title').textContent = config.INDEX1_TITLE;
-        document.getElementById('index2-title').textContent = config.INDEX2_TITLE;
-        document.getElementById('index1-link').href = config.INDEX1_DASHBOARD_URL;
-        document.getElementById('index2-link').href = config.INDEX2_DASHBOARD_URL;
-        
+                // Update dynamic elements
+                document.getElementById('dynamic-favicon').href = CONTENT_CONFIG.FAVICON_URL;
+                document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${CONTENT_CONFIG.FONT_FAMILY.replace(' ', '+')}:wght@300;400;500;600;700&display=swap`;
+                document.body.style.fontFamily = `'${CONTENT_CONFIG.FONT_FAMILY}', 'Helvetica Neue', sans-serif`;
+                
+                // Update panel titles and dashboard links
+                document.getElementById('index1-title').textContent = envConfig.INDEX1_TITLE;
+                document.getElementById('index2-title').textContent = envConfig.INDEX2_TITLE;
+                document.getElementById('index1-link').href = `https://dashboard.algolia.com/apps/${envConfig.INDEX1_APP_ID}/explorer/browse/${envConfig.INDEX1_NAME}`;
+                document.getElementById('index2-link').href = `https://dashboard.algolia.com/apps/${envConfig.INDEX2_APP_ID}/explorer/browse/${envConfig.INDEX2_NAME}`;
+                
+                // Initialize search
+                initializeSearch(envConfig);
+                
+            } catch (error) {
+                console.error('Configuration loading failed:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('config-error').style.display = 'block';
+            }
+        }
+
         // ========================================
         // SEARCH SETUP
         // ========================================
         
-        // Configuration for App 1
-        const search1 = instantsearch({
-            indexName: config.INDEX1_NAME,
-            searchClient: algoliasearch(config.INDEX1_APP_ID, config.INDEX1_API_KEY),
-        });
+        function initializeSearch(envConfig) {
+            // Configuration for App 1
+            const search1 = instantsearch({
+                indexName: envConfig.INDEX1_NAME,
+                searchClient: algoliasearch(envConfig.INDEX1_APP_ID, envConfig.INDEX1_API_KEY),
+            });
 
-        // Configuration for App 2
-        const search2 = instantsearch({
-            indexName: config.INDEX2_NAME,
-            searchClient: algoliasearch(config.INDEX2_APP_ID, config.INDEX2_API_KEY),
-        });
+            // Configuration for App 2
+            const search2 = instantsearch({
+                indexName: envConfig.INDEX2_NAME,
+                searchClient: algoliasearch(envConfig.INDEX2_APP_ID, envConfig.INDEX2_API_KEY),
+            });
 
-        function hitTemplate(hit) {
-            // Helper function to get nested property value
-            function getNestedValue(obj, path) {
-                return path.split('.').reduce((current, key) => current && current[key], obj);
-            }
-            
-            // Construct Cloudinary image URL
-            let imageUrl = config.FALLBACK_IMAGE;
-            if (hit.images && hit.images[0] && hit.images[0].source) {
-                imageUrl = `https://res.cloudinary.com/rivly/f_auto,q_auto/${hit.images[0].source}`;
-            }
-            
-            // Get configurable attributes
-            const title = hit[config.TITLE_ATTRIBUTE] || 'Unnamed Product';
-            const brand = hit[config.BRAND_ATTRIBUTE] || '';
-            const description = hit[config.DESCRIPTION_ATTRIBUTE] || '';
-            const priceValue = getNestedValue(hit, config.PRICE_ATTRIBUTE);
-            const price = priceValue ? `$${priceValue}` : '';
-            const extraValue = hit[config.EXTRA_ATTRIBUTE] || '';
-            
-            // Limit description to 80 characters
-            const limitedDescription = description ? 
-                (description.length > 80 ? description.substring(0, 80) + '...' : description) : '';
+            function hitTemplate(hit) {
+                // Helper function to get nested property value
+                function getNestedValue(obj, path) {
+                    return path.split('.').reduce((current, key) => current && current[key], obj);
+                }
+                
+                // Construct Cloudinary image URL
+                let imageUrl = CONTENT_CONFIG.FALLBACK_IMAGE;
+                if (hit.images && hit.images[0] && hit.images[0].source) {
+                    imageUrl = `https://res.cloudinary.com/rivly/f_auto,q_auto/${hit.images[0].source}`;
+                }
+                
+                // Get configurable attributes
+                const title = hit[CONTENT_CONFIG.TITLE_ATTRIBUTE] || 'Unnamed Product';
+                const brand = hit[CONTENT_CONFIG.BRAND_ATTRIBUTE] || '';
+                const description = hit[CONTENT_CONFIG.DESCRIPTION_ATTRIBUTE] || '';
+                const priceValue = getNestedValue(hit, CONTENT_CONFIG.PRICE_ATTRIBUTE);
+                const price = priceValue ? `$${priceValue}` : '';
+                const extraValue = hit[CONTENT_CONFIG.EXTRA_ATTRIBUTE] || '';
+                
+                // Limit description to 80 characters
+                const limitedDescription = description ? 
+                    (description.length > 80 ? description.substring(0, 80) + '...' : description) : '';
 
-            return `
-                <div class="hit-card">
-                <img 
-                    src="${imageUrl}" 
-                    alt="${title}" 
-                    onerror="this.onerror=null;this.src='${config.FALLBACK_IMAGE}';"
-                />
-                <div class="hit-content">
-                    <div class="hit-content-top">
-                        ${brand ? `<div class="brand-badge">${brand}</div>` : '<div class="brand-badge" style="opacity: 0; pointer-events: none;">PLACEHOLDER</div>'}
-                        <div class="product-name">${title}</div>
+                return `
+                    <div class="hit-card">
+                    <img 
+                        src="${imageUrl}" 
+                        alt="${title}" 
+                        onerror="this.onerror=null;this.src='${CONTENT_CONFIG.FALLBACK_IMAGE}';"
+                    />
+                    <div class="hit-content">
+                        <div class="hit-content-top">
+                            ${brand ? `<div class="brand-badge">${brand}</div>` : '<div class="brand-badge" style="opacity: 0; pointer-events: none;">PLACEHOLDER</div>'}
+                            <div class="product-name">${title}</div>
+                        </div>
+                        <div class="hit-content-bottom">
+                            ${price ? `<div class="price-display">${price}</div>` : '<div class="price-display" style="opacity: 0;">$0.00</div>'}
+                        </div>
                     </div>
-                    <div class="hit-content-bottom">
-                        ${price ? `<div class="price-display">${price}</div>` : '<div class="price-display" style="opacity: 0;">$0.00</div>'}
                     </div>
-                </div>
-                </div>
-            `;
+                `;
+            }
+
+            search1.addWidgets([
+                instantsearch.widgets.hits({
+                    container: '#hits-left',
+                    templates: { item: hitTemplate }
+                })
+            ]);
+
+            search2.addWidgets([
+                instantsearch.widgets.hits({
+                    container: '#hits-right',
+                    templates: { item: hitTemplate }
+                })
+            ]);
+
+            search1.start();
+            search2.start();
+
+            const input = document.getElementById('searchbox-input');
+            input.addEventListener('input', (e) => {
+                const query = e.target.value;
+                search1.helper.setQuery(query).search();
+                search2.helper.setQuery(query).search();
+            });
         }
 
-        search1.addWidgets([
-            instantsearch.widgets.hits({
-                container: '#hits-left',
-                templates: { item: hitTemplate }
-            })
-        ]);
-
-        search2.addWidgets([
-            instantsearch.widgets.hits({
-                container: '#hits-right',
-                templates: { item: hitTemplate }
-            })
-        ]);
-
-        search1.start();
-        search2.start();
-
-        const input = document.getElementById('searchbox-input');
-        input.addEventListener('input', (e) => {
-            const query = e.target.value;
-            search1.helper.setQuery(query).search();
-            search2.helper.setQuery(query).search();
-        });
+        // ========================================
+        // APP INITIALIZATION
+        // ========================================
+        
+        // Initialize app when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
     </script>
 </body>
 
