@@ -1,5 +1,5 @@
 {
-  "name": "algolia-sidebyside-demo",
+  "name": "rivly-sidebyside-demo",
   "version": "1.0.0",
   "description": "Professional Algolia side-by-side search demo with secure environment variable management",
   "main": "index.html",
