@@ -1,0 +1,21 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Louisville",
+			"country": {
+				"code": "US",
+				"name": "United States"
+			},
+			"subdivision": {
+				"code": "CO",
+				"name": "Colorado"
+			},
+			"timezone": "America/Denver",
+			"latitude": 39.9834,
+			"longitude": -105.143,
+			"postalCode": "80027"
+		},
+		"timestamp": 1757353651558
+	},
+	"siteId": "f99f518a-fa0e-4a64-850f-e6e1335ccf34"
+}
