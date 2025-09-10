@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+========================================
+ALGOLIA SIDE-BY-SIDE SEARCH DEMO
+========================================
+
+ENVIRONMENT VARIABLES:
+Sensitive environment variables (API keys, App IDs) are loaded via Netlify Functions
+Content and styling variables are configured directly in this file
+-->
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Algolia Search Demo - Side-by-Side Comparison</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css/themes/algolia-min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- DYNAMIC FAVICON + FONT -->
+    <link id="dynamic-favicon" rel="icon" href="https://avatars.githubusercontent.com/u/2034458?s=280&v=4" type="image/svg+xml">
+    <link id="dynamic-font" href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- EXTERNAL STYLESHEETS -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/chatbot.css">
+</head>
+
+<body>
+    <header>
+        <img src="Algolia-logo-white.svg" alt="Algolia Logo">
+        <h1>Search Demo</h1>
+        <p style="margin: 10px; opacity: 0.9; font-weight: 300;">Search for homes in natural language</p>
+    </header>
+
+    <input type="text" id="searchbox-input" placeholder="Search for content..." />
+
+    <div id="config-error" class="config-error" style="display: none;">
+        <h3>Configuration Error</h3>
+        <p>Failed to load environment configuration. Please check your Netlify function setup.</p>
+    </div>
+
+    <div id="loading" class="loading">
+        <p>Loading configuration...</p>
+    </div>
+
+    <div class="container" style="display: none;" id="main-content">
+        <div class="panel">
+            <a href="#" id="index1-link"><h2 id="index1-title">Loading...</h2></a>
+            <div id="facets-left" class="facet"></div>
+            <div id="hits-left" class="hits"></div>
+        </div>
+    </div>
+
+    <!-- Load configuration (fallback for local development) -->
+    <script src="config.js"></script>
+    
+    <!-- Load Algolia libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@4/dist/algoliasearch-lite.umd.js"></script>
+    
+    <script>
+        // ========================================
+        // CONTENT & STYLING CONFIGURATION
+        // ========================================
+        
+        const CONTENT_CONFIG = {
+            // Visual Configuration
+            FALLBACK_IMAGE: 'https://catchouse.com/wp-content/uploads/fbrfg/favicon-96x96.png',
+            FAVICON_URL: 'https://avatars.githubusercontent.com/u/2034458?s=280&v=4',
+            FONT_FAMILY: 'Sora',
+
+            // Hit Card Attributes Configuration - Updated for Property Data
+            TITLE_ATTRIBUTE: 'formatted_address',
+            DESCRIPTION_ATTRIBUTE: 'public_remarks',
+            PRICE_ATTRIBUTE: 'price',
+            EXTRA_ATTRIBUTE: 'neighborhood',
+            BRAND_ATTRIBUTE: 'neighborhood'
+        };
+
+        // ========================================
+        // CONFIGURATION LOADING
+        // ========================================
+        
+        async function loadConfig() {
+            try {
+                // Try to load from Netlify function first (production)
+                const response = await fetch('/.netlify/functions/config');
+                if (response.ok) {
+                    return await response.json();
+                }
+                throw new Error('Netlify function not available');
+            } catch (error) {
+                // Fallback to local config (development)
+                if (window.ENV_CONFIG) {
+                    return window.ENV_CONFIG;
+                }
+                throw error;
+            }
+        }
+
+        // ========================================
+        // INITIALIZATION
+        // ========================================
+        
+        async function initializeApp() {
+            try {
+                // Load environment configuration
+                const envConfig = await loadConfig();
+                
+                // Hide loading, show content
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('main-content').style.display = 'flex';
+
+                // Update dynamic elements
+                document.getElementById('dynamic-favicon').href = CONTENT_CONFIG.FAVICON_URL;
+                document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${CONTENT_CONFIG.FONT_FAMILY.replace(' ', '+')}:wght@300;400;500;600;700&display=swap`;
+                document.body.style.fontFamily = `'${CONTENT_CONFIG.FONT_FAMILY}', 'Helvetica Neue', sans-serif`;
+                
+                // Update panel title and dashboard link
+                document.getElementById('index1-title').textContent = envConfig.INDEX1_TITLE;
+                document.getElementById('index1-link').href = `https://dashboard.algolia.com/apps/${envConfig.INDEX1_APP_ID}/explorer/browse/${envConfig.INDEX1_NAME}`;
+                
+                // Initialize search
+                initializeSearch(envConfig);
+                
+            } catch (error) {
+                console.error('Configuration loading failed:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('config-error').style.display = 'block';
+            }
+        }
+
+        // ========================================
+        // SEARCH SETUP
+        // ========================================
+        
+        function initializeSearch(envConfig) {
+            // Configuration for search
+            const search1 = instantsearch({
+                indexName: envConfig.INDEX1_NAME,
+                searchClient: algoliasearch(envConfig.INDEX1_APP_ID, envConfig.INDEX1_API_KEY),
+            });
+
+            function hitTemplate(hit) {
+                // Helper function to get nested property value
+                function getNestedValue(obj, path) {
+                    return path.split('.').reduce((current, key) => current && current[key], obj);
+                }
+                
+                // Construct Cloudinary image URL
+                let imageUrl = CONTENT_CONFIG.FALLBACK_IMAGE;
+                if (hit.images && hit.images[0] && hit.images[0].source) {
+                    imageUrl = `https://res.cloudinary.com/rivly/f_auto,q_auto/${hit.images[0].source}`;
+                }
+                
+                // Get configurable attributes - Updated for Property Data
+                const title = hit[CONTENT_CONFIG.TITLE_ATTRIBUTE] || 'Address Not Available';
+                const brand = hit[CONTENT_CONFIG.BRAND_ATTRIBUTE] || '';
+                const description = hit[CONTENT_CONFIG.DESCRIPTION_ATTRIBUTE] || '';
+                const priceValue = hit[CONTENT_CONFIG.PRICE_ATTRIBUTE];
+                const price = priceValue ? `$${priceValue.toLocaleString()}` : '';
+                const extraValue = hit[CONTENT_CONFIG.EXTRA_ATTRIBUTE] || '';
+                
+                // Property-specific attributes
+                const bedrooms = hit.bedrooms || 0;
+                const bathrooms = hit.bathrooms || 0;
+                const propertyType = hit.property_type ? hit.property_type.replace('_', ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase()) : '';
+                
+                // Limit description to 80 characters
+                const limitedDescription = description ? 
+                    (description.length > 80 ? description.substring(0, 80) + '...' : description) : '';
+
+                return `
+                    <div class="hit-card">
+                    <img 
+                        src="${imageUrl}" 
+                        alt="${title}" 
+                        onerror="this.onerror=null;this.src='${CONTENT_CONFIG.FALLBACK_IMAGE}';"
+                    />
+                    <div class="hit-content">
+                        <div class="hit-content-top">
+                            ${brand ? `<div class="brand-badge">${brand}</div>` : '<div class="brand-badge" style="opacity: 0; pointer-events: none;">NO NEIGHBORHOOD</div>'}
+                            <div class="product-name">${title}</div>
+                            <div style="display: flex; gap: 6px; align-items: center; margin-top: 8px; font-family: 'Sora', sans-serif;">
+                                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #1a1a1a; font-size: 0.9em;"><span>${bedrooms}</span><span style="font-size: 0.75em; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">bed</span></span>
+                                <span style="color: #ddd; font-size: 1.1em;">•</span>
+                                <span style="display: flex; align-items: center; gap: 4px; font-weight: 600; color: #1a1a1a; font-size: 0.9em;"><span>${bathrooms}</span><span style="font-size: 0.75em; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">bath</span></span>
+                                ${propertyType ? `<span style="color: #ddd; font-size: 1.1em;">•</span><span style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 0.15em 0.5em; border-radius: 10px; font-size: 0.7em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;">${propertyType}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="hit-content-bottom">
+                            ${price ? `<div class="price-display">${price}</div>` : '<div class="price-display" style="opacity: 0;">Price Not Listed</div>'}
+                        </div>
+                    </div>
+                    </div>
+                `;
+            }
+
+            search1.addWidgets([
+                instantsearch.widgets.hits({
+                    container: '#hits-left',
+                    templates: { item: hitTemplate }
+                })
+            ]);
+
+            search1.start();
+
+            const input = document.getElementById('searchbox-input');
+            input.addEventListener('input', (e) => {
+                const query = e.target.value;
+                search1.helper.setQuery(query).search();
+            });
+        }
+
+        // ========================================
+        // APP INITIALIZATION
+        // ========================================
+        
+        // Initialize app when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+    </script>
+    
+    <!-- Catchouse ChatBot -->
+    <script src="catchouse-chatbot.js"></script>
+</body>
+
+</html>
