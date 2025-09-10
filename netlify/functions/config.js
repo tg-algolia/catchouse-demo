@@ -24,10 +24,18 @@ exports.handler = async (event, context) => {
     try {
         // Extract environment variables
         const config = {
-            INDEX1_NAME: process.env.INDEX1_NAME || 'all-products',
-            INDEX1_APP_ID: process.env.INDEX1_APP_ID || 'UUCTQPKC2Z',
-            INDEX1_API_KEY: process.env.INDEX1_API_KEY || '6981524f62d3f21830c3cd11643e1cd2',
-            INDEX1_TITLE: process.env.INDEX1_TITLE || 'Production Search',
+            // OpenAI Configuration
+            OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+            
+            // Algolia Configuration
+            ALGOLIA_APP_ID: process.env.ALGOLIA_APP_ID || 'T3J6BKODKM',
+            ALGOLIA_API_KEY: process.env.ALGOLIA_API_KEY || '85be8167f9237efc6997e81f8af59f73',
+            
+            // Search Configuration
+            INDEX1_NAME: process.env.INDEX1_NAME || 'demo_catchouse_ns',
+            INDEX1_APP_ID: process.env.INDEX1_APP_ID || 'T3J6BKODKM',
+            INDEX1_API_KEY: process.env.INDEX1_API_KEY || '85be8167f9237efc6997e81f8af59f73',
+            INDEX1_TITLE: process.env.INDEX1_TITLE || 'NeuralSearch',
             
             INDEX2_NAME: process.env.INDEX2_NAME || 'demo_rivly_ns',
             INDEX2_APP_ID: process.env.INDEX2_APP_ID || 'T3J6BKODKM',

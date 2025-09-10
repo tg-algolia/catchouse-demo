@@ -11,10 +11,26 @@
     /* ───────────── CONFIG LOADING ───────────── */
     async function loadConfig() {
         try {
-            // Check if config is already loaded via script tag
+            // Check if config is already loaded via script tag (local development)
             if (window.ENV_CONFIG && window.ENV_CONFIG.OPENAI_API_KEY) {
                 OPENAI_API_KEY = window.ENV_CONFIG.OPENAI_API_KEY;
+                console.log('Config loaded from window.ENV_CONFIG');
                 return;
+            }
+            
+            // Try to load from Netlify function first (production)
+            try {
+                const response = await fetch('/.netlify/functions/config');
+                if (response.ok) {
+                    const config = await response.json();
+                    if (config.OPENAI_API_KEY) {
+                        OPENAI_API_KEY = config.OPENAI_API_KEY;
+                        console.log('Config loaded from Netlify function');
+                        return;
+                    }
+                }
+            } catch (netlifyError) {
+                console.log('Netlify function not available, trying local config...');
             }
             
             // Fallback: try to load config.js dynamically
@@ -25,6 +41,7 @@
                 script.onload = () => {
                     if (window.ENV_CONFIG && window.ENV_CONFIG.OPENAI_API_KEY) {
                         OPENAI_API_KEY = window.ENV_CONFIG.OPENAI_API_KEY;
+                        console.log('Config loaded from dynamic script');
                         resolve();
                     } else {
                         reject(new Error('Config loaded but OPENAI_API_KEY not found'));
@@ -35,7 +52,7 @@
             });
         } catch (error) {
             console.error('Failed to load config:', error);
-            throw new Error('Configuration loading failed. Please ensure config.js exists and contains OPENAI_API_KEY.');
+            throw new Error('Configuration loading failed. Please ensure config is available.');
         }
     }
 
