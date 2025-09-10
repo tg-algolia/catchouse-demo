@@ -12,9 +12,4 @@ window.ENV_CONFIG = {
     INDEX1_API_KEY: 'your-search-only-api-key-1',
     INDEX1_TITLE: 'Production Search',
 
-    // Search Configuration - Index 2
-    INDEX2_NAME: 'your-index-2-name',
-    INDEX2_APP_ID: 'YOUR_APP_ID_2', 
-    INDEX2_API_KEY: 'your-search-only-api-key-2',
-    INDEX2_TITLE: 'NeuralSearch'
 };

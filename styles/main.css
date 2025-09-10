@@ -1,0 +1,279 @@
+/* Main page styles for Catchouse Property Search Demo */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+
+body {
+    font-family: 'Sora', 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    color: #363A5A;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+a {
+    color: #5468FF;
+    text-decoration: none;
+}
+
+.ais-Hits-item{
+    border: 0px;
+    box-shadow: 0 0 0 0;
+}
+
+.ais-Hits-list{
+    border: 1px;
+    border-color: #000;
+    border: 1px dashed #cfc4ab68;
+    border-radius: 8px;
+}
+
+header {
+    background: #003dff;
+    padding: 24px 40px;
+    border-bottom: none;
+    text-align: center;
+    color: #ffffff;
+    box-shadow: 0 4px 20px rgba(84, 104, 255, 0.15);
+    position: relative;
+}
+
+header img {
+    height: 48px;
+}
+
+h1 {
+    font-size: 2em;
+    font-weight: 400;
+    margin: 16px 0 0 0;
+    font-family: 'Sora', sans-serif;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#searchbox-input {
+    width: 85%;
+    max-width: 600px;
+    padding: 10px 10px;
+    font-size: 1.1rem;
+    font-family: 'Sora', sans-serif;
+    margin: 1.5rem auto;
+    display: block;
+    border: 2px solid #E8E9F3;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(84, 104, 255, 0.08);
+    transition: all 0.3s ease;
+    background: white;
+}
+
+#searchbox-input:focus {
+    outline: none;
+    border-color: #003dff;
+    box-shadow: 0 8px 24px rgba(84, 104, 255, 0.15);
+    transform: translateY(-1px);
+}
+
+#searchbox-input::placeholder {
+    color: #999;
+    font-family: 'Sora', sans-serif;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    padding: 0px 50px;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.panel {
+    width: 100%;
+    max-width: 1200px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    padding: 10px 50px;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.panel h2 {
+    font-size: 1.4em;
+    font-weight: 400;
+    margin-bottom: 20px;
+    color: #363A5A;
+    font-family: 'Sora', sans-serif;
+    text-align: center;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #E8E9F3;
+}
+
+.panel h2:hover {
+    color: #457aff;
+    transition: color 0.3s ease;
+}
+
+.facet,
+.hits {
+    margin-bottom: 30px;
+}
+
+.ais-Hits-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(84, 104, 255, 0.15);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.8);
+}
+
+.ais-Hits-item {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.hit-card {
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    height: 22rem;
+    width: 16rem;
+    min-width: 0;
+    display: flex;
+    padding: 10px;
+    margin: 0;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-sizing: border-box;
+    justify-content: space-between;
+}
+
+.hit-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.hit-card img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.hit-content {
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: flex-start;
+    min-height: 0;
+}
+
+.hit-content-top {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.hit-content-bottom {
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+.product-name {
+    font-size: .80rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    color: #363A5A;
+    font-family: 'Sora', sans-serif;
+    min-height: 60px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    line-clamp: 4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+
+.product-meta {
+    font-size: 0.9em;
+    color: #6B7280;
+    line-height: 1.5;
+    font-family: 'Sora', sans-serif;
+    font-weight: 400;
+}
+
+.product-tags {
+    font-size: 0.75em;
+    color: #9CA3AF;
+    margin-top: 8px;
+    font-family: 'Sora', sans-serif;
+}
+
+.brand-badge {
+    display: inline-block;
+    background: #00b928;
+    color: white;
+    padding: 4px 8px 0px 8px;
+    border-radius: 12px;
+    font-size: .60em;
+    font-weight: 500;
+    margin-bottom: 4px;
+    font-family: 'Sora', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    align-self: flex-start;
+    height: 1rem;
+    line-height: 1.2;
+    min-height: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.price-display {
+    font-size: 1em;
+    font-weight: 600;
+    color: #00526c;
+    margin: 0;
+    font-family: 'Sora', sans-serif;
+    line-height: 1.2;
+    min-height: 20px;
+}
+
+.product-description {
+    font-size: 0.85em;
+    color: #6B7280;
+    line-height: 1.4;
+    margin-top: 12px;
+    font-family: 'Sora', sans-serif;
+}
+
+.config-error {
+    background: #ffebee;
+    border: 1px solid #f44336;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px;
+    color: #c62828;
+    font-family: 'Sora', sans-serif;
+    text-align: center;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-family: 'Sora', sans-serif;
+}
