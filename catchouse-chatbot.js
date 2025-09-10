@@ -11,12 +11,31 @@
     /* ───────────── CONFIG LOADING ───────────── */
     async function loadConfig() {
         try {
-            const response = await fetch('./config.js');
-            const config = await response.json();
-            OPENAI_API_KEY = config.OPENAI_API_KEY;
+            // Check if config is already loaded via script tag
+            if (window.ENV_CONFIG && window.ENV_CONFIG.OPENAI_API_KEY) {
+                OPENAI_API_KEY = window.ENV_CONFIG.OPENAI_API_KEY;
+                return;
+            }
+            
+            // Fallback: try to load config.js dynamically
+            const script = document.createElement('script');
+            script.src = './config.js';
+            
+            await new Promise((resolve, reject) => {
+                script.onload = () => {
+                    if (window.ENV_CONFIG && window.ENV_CONFIG.OPENAI_API_KEY) {
+                        OPENAI_API_KEY = window.ENV_CONFIG.OPENAI_API_KEY;
+                        resolve();
+                    } else {
+                        reject(new Error('Config loaded but OPENAI_API_KEY not found'));
+                    }
+                };
+                script.onerror = () => reject(new Error('Failed to load config.js'));
+                document.head.appendChild(script);
+            });
         } catch (error) {
             console.error('Failed to load config:', error);
-            throw new Error('Configuration loading failed. Please ensure config.js exists.');
+            throw new Error('Configuration loading failed. Please ensure config.js exists and contains OPENAI_API_KEY.');
         }
     }
 
@@ -120,6 +139,7 @@
 
     /* ─────────────────────────── UI helpers ────────────────────────── */
     function injectUI() {
+        console.log('Injecting UI elements...');
         const div = document.createElement("div");
         div.innerHTML = `
         <div class="floating-chat" id="floatingChat">
@@ -132,9 +152,12 @@
           </div>
         </div>`;
         document.body.appendChild(div);
+        console.log('Floating chat added to body');
 
         const toggle = document.createElement("div");
         toggle.id = "chatToggle";
+        // Make sure toggle is visible by default
+        toggle.style.display = "block";
         if (COLLAPSE_ICON.startsWith("http")) {
             toggle.innerHTML = `<img src="${COLLAPSE_ICON}" style="width:48px;height:48px"/>`;
         } else {
@@ -142,6 +165,7 @@
             toggle.style.fontSize = "48px";
         }
         document.body.appendChild(toggle);
+        console.log('Chat toggle added to body');
 
         div.querySelector("#resetChat").onclick = () => {
             document.dispatchEvent(new CustomEvent("enhanced-fitrag:reset-context"));
@@ -566,10 +590,21 @@
     /* ─── boot ─── */
     async function initializeChatbot() {
         try {
+            console.log('Starting chatbot initialization...');
             await loadConfig();
-            ensureAlgolia(() => setupChat(injectUI()));
+            console.log('Config loaded, OPENAI_API_KEY:', OPENAI_API_KEY ? 'Set' : 'Not set');
+            ensureAlgolia(() => {
+                console.log('Algolia loaded, setting up chat...');
+                setupChat(injectUI());
+            });
         } catch (error) {
             console.error('Chatbot initialization failed:', error);
+            // Show chatbot anyway but with error state
+            try {
+                ensureAlgolia(() => setupChat(injectUI()));
+            } catch (fallbackError) {
+                console.error('Fallback initialization also failed:', fallbackError);
+            }
         }
     }
     
